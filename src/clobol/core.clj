@@ -67,8 +67,7 @@
 
 (defn compile-clojure-ns [ns]
   (-> ns
-      (compiler/analyze-ns)
-      (compiler/compile-asts)
+      (compiler/compile-ns)
       (assemble-clobol-ast)))
 
 
