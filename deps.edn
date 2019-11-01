@@ -1,0 +1,19 @@
+{:paths   ["src"]
+ :deps    {org.clojure/tools.reader       {:mvn/version "1.3.2"}
+           org.clojure/tools.analyzer.jvm {:mvn/version "0.7.2"}}
+ :aliases {:nREPL
+           {:extra-deps
+            {nrepl/nrepl       {:mvn/version "0.6.0"}
+             cider/cider-nrepl {:mvn/version "0.22.4"}
+             cider/orchard     {:mvn/version "0.5.3"}
+             refactor-nrepl    {:mvn/version "2.4.0"}}}
+           :native-image {:main-opts ["-m clj.native-image sum"
+                                      "--initialize-at-build-time"
+                                      "--report-unsupported-elements-at-runtime"
+                                      ;; optional native image name override
+                                      "-H:Name=sum"]
+                          :jvm-opts  ["-Dclojure.compiler.direct-linking=true"]
+                          :extra-deps
+                          {clj.native-image
+                           {:git/url "https://github.com/taylorwood/clj.native-image.git"
+                            :sha     "7708e7fd4572459c81f6a6b8e44c96f41cdd92d4"}}}}}
