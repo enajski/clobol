@@ -30,6 +30,9 @@
 (defmulti emit* :op)
 
 
+(defmulti static-call* (fn [ast] (:method ast)))
+
+
 (defn- wrap-in-double-quotes [x]
   (str \" x \"))
 
@@ -38,8 +41,32 @@
   (wrap-in-double-quotes (:val ast)))
 
 
+(defmethod static-call* 'inc
+  [{args :args}]
+  (let [arg (first args)]
+    (cond
+      (= :number (:type arg))
+      (inc arg)
+
+      (= :local (:op arg))
+      (let [local (:form arg)]
+        (emit {:procedure [["SET"
+                            :clobol/spc
+                            local
+                            :clobol/spc
+                            "UP BY"
+                            :clobol/spc
+                            1]]})
+        (emit* arg)))))
+
+
+(defmethod static-call* 'add
+  [{args :args}]
+  (apply + (map emit* args)))
+
+
 (defmethod invoke* #'clojure.core/println
-  [{f :fn args :args}]
+  [{args :args}]
   (emit {:procedure [(vec (flatten ["DISPLAY"
                                     (for [arg args]
                                       [:clobol/spc
@@ -50,6 +77,11 @@
 (defmethod emit* :invoke
   [ast]
   (invoke* ast))
+
+
+(defmethod emit* :static-call
+  [ast]
+  (static-call* ast))
 
 
 (defmethod emit* :local
@@ -88,7 +120,7 @@
 (defmethod emit* :let
   [ast]
   (let [variables (for [binding (:bindings ast)]
-                    {:name  (str (:form binding))
+                    {:name  (:form binding)
                      :type  (get-cobol-type (get-in binding [:init :type]))
                      :value (get-in binding [:init :val])})]
     (emit {:data {:working-storage (vec variables)}})
@@ -99,7 +131,10 @@
   (some-> ast :init :expr))
 
 
-(defn emit-defn [ast])
+(defn emit-defn [ast]
+  (emit {:procedure [[(:name ast)
+                      :clobol/end-row]
+                     ["DISPLAY" (emit-string {:val (:name ast)})]]}))
 
 
 (defmethod emit* :def
