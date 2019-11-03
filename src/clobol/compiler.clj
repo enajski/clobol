@@ -127,22 +127,6 @@
     (emit* (:body ast))))
 
 
-(defn- is-defn-declaration? [ast]
-  (some-> ast :init :expr))
-
-
-(defn emit-defn [ast]
-  (emit {:procedure [[(:name ast)
-                      :clobol/end-row]
-                     ["DISPLAY" (emit-string {:val (:name ast)})]]}))
-
-
-(defmethod emit* :def
-  [ast]
-  (if (is-defn-declaration? ast)
-    (emit-defn ast)))
-
-
 (defn emit-all [ast]
   (emit* ast))
 
@@ -165,6 +149,16 @@
 
   (-> (ana.jvm/analyze '(defn sum-of-integers [n]
                           (reduce + (range (inc n))))))
+
+  (-> (ana.jvm/analyze '(+ 1 2)))
+
+  (-> (ana.jvm/analyze '(println 1 2)))
+
+  (-> (ana.jvm/analyze '(let [n (+ 1 2)]
+                          n)))
+
+  (-> (ana.jvm/analyze '(inc n))
+      )
 
 
   (compile-asts (ana.jvm/analyze-ns 'clobol.clojure.hello-world))
